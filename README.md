@@ -1,7 +1,7 @@
 # finalproject-lab
 atm app
-created by : <br>
-- Dave russell 2501973400 <br>
-- Richard senjaya <br>
-- Hansen <br>
+created by :
+- Dave russell 2501973400
+- Richard senjaya
+- Hansen
 Edit disini guys <br>
