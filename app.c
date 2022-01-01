@@ -1,15 +1,10 @@
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
 // Macro
 #define STR_MAX 50
 #define ull unsigned long long
-
-// Prototype
-void clearBuff();
-void clearScreen();
 
 typedef struct {
   char nama[STR_MAX];
@@ -18,6 +13,17 @@ typedef struct {
   char time[STR_MAX];
   ull balance;
 } User;
+
+// Prototype
+void clearBuff();
+void clearScreen();
+void enterToContinue();
+void getTime(char*);
+int isUniqueName(const char*);
+void pushNewRecord(User);
+void regist();
+void login();
+void mainMenu();
 
 /**
  * Description : membersihkan char yang tertinggal di buffer
@@ -28,18 +34,39 @@ void clearBuff() {
   while ((c = getchar()) != '\n' && c != EOF) {};
 }
 
-void clearScreen() { printf("\e[1;1H\e[2J"); }
+/**
+ * Description : membersihkan prompt dengan regex
+ * Author : Dave russell - 2501973400
+ */
+void clearScreen() {
+  printf("\e[1;1H\e[2J");
+}
 
+/**
+ * Description : membekukan prompt agar user dapat melihat pesan
+ * Author : Dave russell - 2501973400
+ */
 void enterToContinue() {
   printf("Tekan enter untuk melanjutkan..");
   clearBuff();
 }
 
+/**
+ * Description : mendapatkan current time dengan format ww Mmm dd hh:mm:ss yyyy
+ * Author : Dave russell - 2501973400
+ */
 void getTime(char* charArgs) {
   time_t currentTime = time(NULL);
   strcpy(charArgs,ctime(&currentTime));
 }
 
+/**
+ * Input : String nama(parameter)
+ * Ouput : integer
+ * Description : mengembalikan 1 jika argumen nama yang dikirim tidak ada dalam file,
+ *               dan mengembalikan 0 untuk sebaliknya
+ * Author : Dave russell - 2501973400
+ */
 int isUniqueName(const char* nama) {
   FILE* fp = fopen("database.bin","rb");
   if (fp == NULL) {
@@ -54,12 +81,22 @@ int isUniqueName(const char* nama) {
   return 1;
 }
 
+/**
+ * Input : User newUser(parameter)
+ * Description : menulis user baru pada file
+ * Author : Dave russell - 2501973400
+ */
 void pushNewRecord(User newUser) {
   FILE* fp = fopen("database.bin","ab");
   fwrite(&newUser,sizeof(User),1,fp);
   fclose(fp);
 }
 
+/**
+ * Input : String nama(stdin), String password(stdin), String contact(stdin)
+ * Description : melakukan registrasi
+ * Author : Dave russell - 2501973400
+ */
 void regist() {
   User newUser;
   int valid = 0;
@@ -69,7 +106,7 @@ void regist() {
     puts("============");
 
     printf("Masukan nama anda : ");
-    scanf("%[^\n]",newUser.nama);
+    scanf("%s",newUser.nama);
     clearBuff();
 
     printf("Masukan password anda : ");
@@ -89,7 +126,7 @@ void regist() {
   clearScreen();
   puts("Register");
   puts("============");
-  printf("Masukan nomor telephone anda :");
+  printf("Masukan nomor telephone anda : ");
   scanf("%s",newUser.contact);
   clearBuff();
   getTime(newUser.time);
