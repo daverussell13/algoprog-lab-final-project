@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -13,6 +14,9 @@ typedef struct {
   char time[STR_MAX];
   ull balance;
 } User;
+
+// Global variable
+User currUser;
 
 // Prototype
 void clearBuff();
@@ -52,6 +56,23 @@ void enterToContinue() {
 }
 
 /**
+ * Input : String filename(parameter)
+ * Description : jika file yang di cek tidak ada maka akan membuat file tersebut
+ * Author : Dave russell - 2501973400
+ */
+void checkFile(const char* filename) {
+  FILE* fp = fopen(filename,"rb");
+  if (fp == NULL) {
+    fp = fopen(filename,"wb");
+    if (fp == NULL) {
+      printf("Gagal membuat file...");
+      exit(1);
+    }
+  }
+  fclose(fp);
+}
+
+/**
  * Description : mendapatkan current time dengan format ww Mmm dd hh:mm:ss yyyy
  * Author : Dave russell - 2501973400
  */
@@ -68,10 +89,8 @@ void getTime(char* charArgs) {
  * Author : Dave russell - 2501973400
  */
 int isUniqueName(const char* nama) {
+  checkFile("database.bin");
   FILE* fp = fopen("database.bin","rb");
-  if (fp == NULL) {
-    fp = fopen("database.bin","wb");
-  }
   User temp;
   while (fread(&temp,sizeof(User),1,fp)) {
     if (!strcmp(nama,temp.nama)) {
@@ -87,6 +106,7 @@ int isUniqueName(const char* nama) {
  * Author : Dave russell - 2501973400
  */
 void pushNewRecord(User newUser) {
+  checkFile("database.bin");
   FILE* fp = fopen("database.bin","ab");
   fwrite(&newUser,sizeof(User),1,fp);
   fclose(fp);
@@ -134,6 +154,50 @@ void regist() {
   pushNewRecord(newUser);
 }
 
+int accountVerification(const char* nama) {
+  checkFile("database.bin");
+  FILE* fp = fopen("database.bin","rb");
+  User temp;
+  while (fread(&temp,sizeof(User),1,fp)) {
+    if (!strcmp(temp.nama,nama)) {
+      char password[STR_MAX];
+      printf("Masukan password anda : ");
+      scanf("%s",password);
+      clearBuff();
+      if (!strcmp(temp.password,password)) {
+        currUser = temp;
+        return 2;
+      }
+      return 1;
+    }
+  }
+  return 0;
+  fclose(fp);
+}
+
+void login() {
+  puts("Login");
+  puts("============");
+
+  char nama[STR_MAX];
+  printf("Masukan nama anda : ");
+  scanf("%s",nama);
+  clearBuff();
+
+  switch (accountVerification(nama)) {
+    case 0:
+      puts("Nama yang anda masukan tidak terdaftar");
+      break;
+    case 1:
+      puts("Password yang anda masukan salah");
+      break;
+    case 2:
+      puts("Berhasil login!!!");
+      break;
+  }
+  enterToContinue();
+}
+
 /**
  * Description : main menu prompt
  * Author :
@@ -146,10 +210,6 @@ void mainMenu() {
   puts("3. Exit");
   puts("============");
   printf("Masukan pilihan anda : ");
-}
-
-void login() {
-
 }
 
 int main() {
