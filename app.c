@@ -28,6 +28,10 @@ void pushNewRecord(User);
 void regist();
 void login();
 void mainMenu();
+void atmMenu();
+int accountValidation(const char*);
+int nameValidation(const char*);
+int passwordValidation(const char*);
 
 /**
  * Description : membersihkan char yang tertinggal di buffer
@@ -113,31 +117,75 @@ void pushNewRecord(User newUser) {
 }
 
 /**
+ * Input : String nama(parameter)
+ * Ouput : Integer
+ * Description : mengembalikan 1 jika nama unik, tidak lebih dari 20 karakter,
+ *               dan tidak kosong, mengembalikan 0 untuk sebaliknya
+ * Author : Dave russell - 2501973400
+ */
+int nameValidation(const char* nama) {
+  if (!isUniqueName(nama)) {
+    puts("Nama telah digunakan!!!");
+    enterToContinue();
+    return 0;
+  }
+  else if (strlen(nama) > 20) {
+    puts("Nama tidak boleh lebih dari 20 karakter!!!");
+    enterToContinue();
+    return 0;
+  }
+  else if (strlen(nama) == 0) {
+    puts("Nama tidak boleh kosong!!!");
+    enterToContinue();
+    return 0;
+  }
+  return 1;
+}
+
+/**
+ * Input : String pass(parameter)
+ * Output : integer
+ * Description : mengembalikan nilai 1 jika password memilki panjang 5 - 20 karakter, dan 0 untuk sebaliknya
+ * Author : Dave russell - 2501973400
+ */
+int passwordValidation(const char* pass) {
+  if (strlen(pass) < 5 || strlen(pass) > 20) {
+    puts("Password minimal memiliki 5 karakter dan maksimal 20 karakter");
+    enterToContinue();
+    return 0;
+  }
+  return 1;
+}
+
+/**
  * Input : String nama(stdin), String password(stdin), String contact(stdin)
- * Description : melakukan registrasi
+ * Description : registrasi user baru
  * Author : Dave russell - 2501973400
  */
 void regist() {
   User newUser;
+  // memastikan nama, password, contact kosong (terkadang berisi random value)
+  strcpy(newUser.nama,"\0");
+  strcpy(newUser.password,"\0");
+  strcpy(newUser.contact,"\0");
+
   int valid = 0;
   while (!valid) {
     clearScreen();
     puts("Register");
     puts("============");
-
     printf("Masukan nama anda : ");
-    scanf("%s",newUser.nama);
+    scanf("%[^\n]",newUser.nama);
     clearBuff();
+    valid = nameValidation(newUser.nama);
+  }
 
-    printf("Masukan password anda : ");
-    scanf("%s",newUser.password);
+  valid = 0;
+  while (!valid) {
+    printf("Masukan password : ");
+    scanf("%[^\n]",newUser.password);
     clearBuff();
-
-    valid = isUniqueName(newUser.nama);
-    if (!valid) {
-      puts("Nama telah digunakan...");
-      enterToContinue();
-    }
+    valid = passwordValidation(newUser.password);
   }
 
   puts("User berhasil dibuat..");
@@ -146,15 +194,27 @@ void regist() {
   clearScreen();
   puts("Register");
   puts("============");
+
   printf("Masukan nomor telephone anda : ");
   scanf("%s",newUser.contact);
   clearBuff();
-  getTime(newUser.time);
 
+  getTime(newUser.time);
   pushNewRecord(newUser);
+
+  puts("Akun anda telah terdaftar..");
+  enterToContinue();
 }
 
-int accountVerification(const char* nama) {
+/**
+ * Input : String nama(parameter), String password(stdin)
+ * Ouput : Integer
+ * Description : mengembalikan 0 jika nama user belum didaftarkan,
+ *               mengembalikan 1 jika nama password yang diberikan salah,
+ *               mengembalikan 2 jika data login user valid
+ * Author : Dave russell - 2501973400
+ */
+int accountValidation(const char* nama) {
   checkFile("database.bin");
   FILE* fp = fopen("database.bin","rb");
   User temp;
@@ -162,7 +222,7 @@ int accountVerification(const char* nama) {
     if (!strcmp(temp.nama,nama)) {
       char password[STR_MAX];
       printf("Masukan password anda : ");
-      scanf("%s",password);
+      scanf("%[^\n]",password);
       clearBuff();
       if (!strcmp(temp.password,password)) {
         currUser = temp;
@@ -175,16 +235,22 @@ int accountVerification(const char* nama) {
   fclose(fp);
 }
 
+/**
+ * Input : String nama(stdin)
+ * Description : login kedalam akun
+ * Author : Dave russell - 2501973400
+ */
 void login() {
+  clearScreen();
   puts("Login");
   puts("============");
 
   char nama[STR_MAX];
   printf("Masukan nama anda : ");
-  scanf("%s",nama);
+  scanf("%[^\n]",nama);
   clearBuff();
 
-  switch (accountVerification(nama)) {
+  switch (accountValidation(nama)) {
     case 0:
       puts("Nama yang anda masukan tidak terdaftar");
       break;
@@ -192,10 +258,17 @@ void login() {
       puts("Password yang anda masukan salah");
       break;
     case 2:
-      puts("Berhasil login!!!");
+      atmMenu();
       break;
   }
   enterToContinue();
+}
+
+void atmMenu() {
+  clearScreen();
+  puts("ATM");
+  // test
+  printf("Halo %s\n",currUser.nama);
 }
 
 /**
@@ -215,6 +288,7 @@ void mainMenu() {
 int main() {
   int exit = 0;
   while (!exit) {
+    clearScreen();
     mainMenu();
     int option;
     scanf("%d",&option);
@@ -230,7 +304,8 @@ int main() {
         exit = 1;
         break;
       default:
-        puts("Invalid input");
+        puts("Input tidak valid!!!");
+        enterToContinue();
         break;
     }
   }
