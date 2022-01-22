@@ -200,6 +200,7 @@ void regist() {
   clearBuff();
 
   getTime(newUser.time);
+  newUser.balance = 0;
   pushNewRecord(newUser);
 
   puts("Akun anda telah terdaftar..");
@@ -253,22 +254,24 @@ void login() {
   switch (accountValidation(nama)) {
     case 0:
       puts("Nama yang anda masukan tidak terdaftar");
+      enterToContinue();
       break;
     case 1:
       puts("Password yang anda masukan salah");
+      enterToContinue();
       break;
     case 2:
       atmMenu();
       break;
   }
-  enterToContinue();
 }
 
 void atmMenu() {
   clearScreen();
   puts("ATM");
-  // test
-  printf("Halo %s\n",currUser.nama);
+  puts("1. Deposit");
+  printf("Halo %s balance : %llu\n",currUser.nama,currUser.balance);
+  enterToContinue();
 }
 
 /**
