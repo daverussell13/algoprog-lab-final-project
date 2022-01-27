@@ -32,6 +32,8 @@ void atmMenu();
 int accountValidation(const char*);
 int nameValidation(const char*);
 int passwordValidation(const char*);
+void deposit();
+void menu();
 
 /**
  * Description : membersihkan char yang tertinggal di buffer
@@ -266,12 +268,105 @@ void login() {
   }
 }
 
+void menu() {
+	puts("ATM");
+  puts("=================");
+	puts("1. Deposit");
+	puts("2. Withdrawal");
+	puts("3. Check Deposit");
+	puts("4. Delete account");
+  puts("5. Kembali ke menu utama");
+  puts("=================");
+  printf("Masukan pilihan anda : ");
+}
+
+int depositValidation(ull value) {
+  if (value < 100000) {
+		puts("Maaf, deposito yang anda berikan tidak memenuhi persyaratan minimum");
+    enterToContinue();
+    return 0;
+  }
+  return 1;
+}
+
+void addBalance(const char* nama, ull value) {
+  FILE* fp = fopen("database.bin","rb+");
+  User u;
+  while (fread(&u,sizeof(User),1,fp)) {
+    if (!strcmp(nama,u.nama)) {
+      u.balance += value;
+      fseek(fp,-sizeof(u),SEEK_CUR);
+      fwrite(&u,sizeof(u),1,fp);
+      break;
+    }
+  }
+  fclose(fp);
+}
+
+void deposit() {
+  int valid = 0;
+  ull value;
+  while (!valid) {
+    clearScreen();
+    printf("Masukan jumlah uang : ");
+    scanf("%llu",&value);
+    clearBuff();
+    valid = depositValidation(value);
+  }
+  addBalance(currUser.nama,value);
+  currUser.balance += value;
+}
+
+void showMoney(const char* name) {
+  FILE* fp = fopen("database.bin","rb");
+  User u;
+  while (fread(&u,sizeof(User),1,fp)) {
+    if (!strcmp(name,u.nama)) {
+      printf("Nama : %s\nBalance : %llu\n",u.nama,u.balance);
+    }
+  }
+  fclose(fp);
+}
+
 void atmMenu() {
-  clearScreen();
-  puts("ATM");
-  puts("1. Deposit");
-  printf("Halo %s balance : %llu\n",currUser.nama,currUser.balance);
-  enterToContinue();
+  int exit = 0;
+  while (!exit) {
+    clearScreen();
+    int option = 0;
+    menu();
+    scanf("%d",&option);
+    clearBuff();
+    switch (option) {
+      case 1:
+        deposit();
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+      case 4:
+        break;
+      case 5:
+        exit = 1;
+        break;
+      case 6:
+        clearScreen();
+        showMoney(currUser.nama);
+        enterToContinue();
+        break;
+      default:
+        break;
+      }
+  }
+}
+
+void debug() {
+  FILE* fp = fopen("database.bin","rb");
+  User u;
+  while (fread(&u,sizeof(User),1,fp)) {
+    printf("Username : %s, Password %s\n",u.nama,u.password);
+  }
+  fclose(fp);
 }
 
 /**
@@ -291,7 +386,7 @@ void mainMenu() {
 int main() {
   int exit = 0;
   while (!exit) {
-    clearScreen();
+    debug();
     mainMenu();
     int option;
     scanf("%d",&option);
