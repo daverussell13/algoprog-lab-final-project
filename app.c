@@ -268,7 +268,19 @@ void login() {
   }
 }
 
+void showMoney(const char* name) {
+  FILE* fp = fopen("database.bin","rb");
+  User u;
+  while (fread(&u,sizeof(User),1,fp)) {
+    if (!strcmp(name,u.nama)) {
+      printf("Nama : %s\nBalance : %llu\n",u.nama,u.balance);
+    }
+  }
+  fclose(fp);
+}
+
 void menu() {
+  showMoney(currUser.nama);
 	puts("ATM");
   puts("=================");
 	puts("1. Deposit");
@@ -315,17 +327,6 @@ void deposit() {
   }
   addBalance(currUser.nama,value);
   currUser.balance += value;
-}
-
-void showMoney(const char* name) {
-  FILE* fp = fopen("database.bin","rb");
-  User u;
-  while (fread(&u,sizeof(User),1,fp)) {
-    if (!strcmp(name,u.nama)) {
-      printf("Nama : %s\nBalance : %llu\n",u.nama,u.balance);
-    }
-  }
-  fclose(fp);
 }
 
 void atmMenu() {
@@ -386,7 +387,7 @@ void mainMenu() {
 int main() {
   int exit = 0;
   while (!exit) {
-    debug();
+    clearScreen();
     mainMenu();
     int option;
     scanf("%d",&option);
