@@ -7,6 +7,13 @@
 #define STR_MAX 50
 #define ull unsigned long long
 
+// crossplatform clearscreen
+#ifdef _WIN32
+#define CLEAR "cls"
+#else
+#define CLEAR "clear"
+#endif
+
 typedef struct {
   char nama[STR_MAX];
   char password[STR_MAX];
@@ -20,7 +27,6 @@ User currUser;
 
 // Prototype
 void clearBuff();
-void clearScreen();
 void enterToContinue();
 void getTime(char*);
 int isUniqueName(const char*);
@@ -32,8 +38,10 @@ void atmMenu();
 int accountValidation(const char*);
 int nameValidation(const char*);
 int passwordValidation(const char*);
+void menu_deposito();
 void deposit();
 void menu();
+void withdrawal();
 
 /**
  * Description : membersihkan char yang tertinggal di buffer
@@ -42,14 +50,6 @@ void menu();
 void clearBuff() {
   char c;
   while ((c = getchar()) != '\n' && c != EOF) {};
-}
-
-/**
- * Description : membersihkan prompt dengan regex
- * Author : Dave russell - 2501973400
- */
-void clearScreen() {
-  printf("\e[1;1H\e[2J");
 }
 
 /**
@@ -173,7 +173,7 @@ void regist() {
 
   int valid = 0;
   while (!valid) {
-    clearScreen();
+    system(CLEAR);
     puts("Register");
     puts("============");
     printf("Masukan nama anda : ");
@@ -193,7 +193,7 @@ void regist() {
   puts("User berhasil dibuat..");
   enterToContinue();
 
-  clearScreen();
+  system(CLEAR);
   puts("Register");
   puts("============");
 
@@ -244,7 +244,7 @@ int accountValidation(const char* nama) {
  * Author : Dave russell - 2501973400
  */
 void login() {
-  clearScreen();
+  system(CLEAR);
   puts("Login");
   puts("============");
 
@@ -268,6 +268,13 @@ void login() {
   }
 }
 
+/**
+ * Input : String nama(parameter)
+ * Output : Display User (nama), User (balance)
+ * Description : Fungsi ini akan melihat satu - persatu nama yang ada difile dengan nama yang diinginkan.
+ *               Hasil dari fungsi ini berupa data nama dan total uang yang telah didepositkan.
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 void showMoney(const char* name) {
   FILE* fp = fopen("database.bin","rb");
   User u;
@@ -279,19 +286,27 @@ void showMoney(const char* name) {
   fclose(fp);
 }
 
+/**
+ * Description : Pilihan ATM menu prompt
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 void menu() {
-  showMoney(currUser.nama);
 	puts("ATM");
-  puts("=================");
+  puts("=========================");
 	puts("1. Deposit");
 	puts("2. Withdrawal");
-	puts("3. Check Deposit");
+	puts("3. Check Saldo");
 	puts("4. Delete account");
   puts("5. Kembali ke menu utama");
-  puts("=================");
+  puts("=========================");
   printf("Masukan pilihan anda : ");
 }
 
+/**
+ * Input : ull value(parameter)
+ * Description : Validasi ketika value lebih kecil dari 100rb akan keluar pesan ,jika tidak akan dilanjutkan prosesnya
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 int depositValidation(ull value) {
   if (value < 100000) {
 		puts("Maaf, deposito yang anda berikan tidak memenuhi persyaratan minimum");
@@ -301,6 +316,11 @@ int depositValidation(ull value) {
   return 1;
 }
 
+/**
+ * Input : String nama(parameter), ull value(parameter)
+ * Description : Untuk mengecek apakah nama user yang ditambahkan jumlah depositnya benar apa tidak dan mengupdate total uang yang telah didepositkan ke dalam file
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 void addBalance(const char* nama, ull value) {
   FILE* fp = fopen("database.bin","rb+");
   User u;
@@ -315,11 +335,16 @@ void addBalance(const char* nama, ull value) {
   fclose(fp);
 }
 
+/**
+ * Input : ull value
+ * Description : Untuk menambahkan jumlah deposito ke user yang bersangkutan
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 void deposit() {
   int valid = 0;
   ull value;
   while (!valid) {
-    clearScreen();
+    system(CLEAR);
     printf("Masukan jumlah uang : ");
     scanf("%llu",&value);
     clearBuff();
@@ -329,10 +354,25 @@ void deposit() {
   currUser.balance += value;
 }
 
+/**
+ * Description : Untuk memanggil function yang diperlukan dalam mengupdate total uang deposito
+ * Author : Richard Senjaya Johan - 2501964245
+ */
+void menu_deposito(){
+  system(CLEAR);
+  printf("Check Saldo\n");
+  showMoney(currUser.nama);
+  enterToContinue();
+}
+
+/**
+ * Description : Menu ATM
+ * Author : Richard Senjaya Johan - 2501964245
+ */
 void atmMenu() {
   int exit = 0;
   while (!exit) {
-    clearScreen();
+    system(CLEAR);
     int option = 0;
     menu();
     scanf("%d",&option);
@@ -342,23 +382,122 @@ void atmMenu() {
         deposit();
         break;
       case 2:
+      	withdrawal();
         break;
       case 3:
+      	menu_deposito();
         break;
       case 4:
         break;
       case 5:
         exit = 1;
         break;
-      case 6:
-        clearScreen();
-        showMoney(currUser.nama);
-        enterToContinue();
-        break;
       default:
-        break;
+    	break;
       }
   }
+}
+
+/**
+ * input: ull uang(parameter)
+ * Description : validasi ketika uang lebih besar dari 5juta maka akan mengeluarkan pesan, jika tidak maka prosesnya akan berlanjut
+ * Author : Hansen Faldores - 2501965430
+*/
+int withdrawalValidation(ull uang){
+  if (uang > 5000000){
+    puts("Mohon Maaf, withdrawal yang anda berikan telah melewati persyaratan maksimum");
+    enterToContinue;
+    return 0;
+  }
+  else if (currUser.balance < uang) {
+    puts("Mohon Maaf, saldo anda tidak mencukupi...");
+    enterToContinue();
+    return 0;
+  }
+	return 1;
+}
+
+/**
+ * input: string nama(parameter), ull uang(parameter)
+ * Description : untuk mengecek apakah nama user yang dikurangkan jumlah withdraw benar apa tidak dan mengupdate total uang yang telah diwithdrawalkan ke dalam file
+ * Author: Hansen Faldores - 2501965430
+*/
+void cutBalance(const char* nama,ull uang){
+	FILE* fp = fopen("database.bin","rb+");
+	User u;
+	while(fread(&u,sizeof(User),1,fp)){
+		 if (!strcmp(nama,u.nama)) {
+      u.balance-=uang;
+      fseek(fp,-sizeof(u),SEEK_CUR);
+      fwrite(&u,sizeof(u),1,fp);
+      break;
+    }
+  }
+  fclose(fp);
+}
+
+/**
+ * Input: int pilihan, ull uang
+ * Description: untuk mengurangi jumlah deposito ke user yang berkaitan dan menu penarikan saldo
+ * Author: Hansen Faldores - 2501965430
+*/
+void withdrawal(){
+	ull uang;
+	ull total = 0;
+	int pilihan;
+	int validasi=0;
+	while(!validasi){
+    system(CLEAR);
+    printf("Menu Penarikan Saldo Deposit\n");
+    printf("===========================\n");
+		printf("1. 100.000\n");
+		printf("2. 200.000\n");
+		printf("3. 300.000\n");
+		printf("4. 500.000\n");
+		printf("5. 1.000.000\n");
+		printf("6. 1.500.00\n");
+		printf("7. 2.000.000\n");
+		printf("8. Transaksi lain\n");
+		printf("===========================\n");
+		printf("Masukkan nomor yang adan inginkan : ");
+		scanf("%d",&pilihan);
+    clearBuff();
+
+    switch(pilihan){
+      case 1:
+        uang=100000;
+        break;
+      case 2:
+        uang=200000;
+        break;
+      case 3:
+        uang=300000;
+        break;
+      case 4:
+        uang=500000;
+        break;
+      case 5:
+        uang=1000000;
+        break;
+      case 6:
+        uang=1500000;
+        break;
+      case 7:
+        uang=2000000;
+        break;
+      case 8:
+        printf("Masukan nominal yang akan diambil : \n");
+        scanf("%llu",&uang);
+        clearBuff();
+        break;
+      default:
+        printf("Mohon maaf, Input yang diberikan salah\n");
+        break;
+    }
+    validasi = withdrawalValidation(uang);
+	}
+  cutBalance(currUser.nama,uang);
+  currUser.balance -= uang;
 }
 
 void debug() {
@@ -384,10 +523,15 @@ void mainMenu() {
   printf("Masukan pilihan anda : ");
 }
 
+/**
+ * Output : Menu utama (stdout)
+ * Description: tampilan menu utama
+ * Author: Dave Russell - 2501973400
+*/
 int main() {
   int exit = 0;
   while (!exit) {
-    clearScreen();
+    system(CLEAR);
     mainMenu();
     int option;
     scanf("%d",&option);
