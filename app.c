@@ -1,10 +1,11 @@
 /**
- * KELOMPOK 1 :
- * - Dave Russell - 2501973400
- * - Richard Senjaya Johan - 2501964245
- * - Hansen Faldores - 2501965430
- */
+* KELOMPOK 1 :
+* - Dave Russell - 2501973400
+* - Richard Senjaya Johan - 2501964245
+* - Hansen Faldores - 2501965430
+*/
 
+// Library
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
