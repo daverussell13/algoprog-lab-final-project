@@ -1,3 +1,10 @@
+/**
+ * KELOMPOK 1 :
+ * - Dave Russell - 2501973400
+ * - Richard Senjaya Johan - 2501964245
+ * - Hansen Faldores - 2501965430
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -559,7 +566,7 @@ void withdrawal(){
 }
 
 /**
- * Output : Detail akun
+ * Output : Detail akun (stdout)
  * Description : menampilkan detail dari akun yang telah login
  * Author : Dave Russell - 2501973400
  */
