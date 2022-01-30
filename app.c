@@ -60,7 +60,7 @@ typedef struct {
  * Author : Dave russell - 2501973400
  */
 void initArray(Array *a, int initialSize) {
-  a->array = malloc(initialSize * sizeof(User));
+  a->array = (User*)malloc(initialSize * sizeof(User));
   a->used = 0;
   a->size = initialSize;
 }
@@ -73,7 +73,7 @@ void initArray(Array *a, int initialSize) {
 void insertArray(Array *a, User newUser) {
   if (a->used == a->size) {
     a->size *= 2;
-    a->array = realloc(a->array, a->size * sizeof(User));
+    a->array = (User*)realloc(a->array, a->size * sizeof(User));
   }
   a->array[a->used++] = newUser;
 }
