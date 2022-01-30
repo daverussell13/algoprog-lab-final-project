@@ -422,6 +422,7 @@ int isEmptyData(User currentUser) {
 }
 
 /**
+ * Output : Menu ATM (stdout)
  * Description : Menu ATM
  * Author : Richard Senjaya Johan - 2501964245
  */
