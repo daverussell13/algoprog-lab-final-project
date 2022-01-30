@@ -8,7 +8,7 @@
 #define ull unsigned long long
 
 // crossplatform clearscreen
-#ifdef _WIN32
+#if defined (_WIN32) || defined (_WIN64)
 #define CLEAR "cls"
 #else
 #define CLEAR "clear"
@@ -42,6 +42,52 @@ void menu_deposito();
 void deposit();
 void menu();
 void withdrawal();
+void deleteAccount();
+
+/**
+ * Description : Dynamic array untuk menyimpan user sementara
+ * Author : Dave russell - 2501973400
+ */
+typedef struct {
+  User *array;
+  int used;
+  int size;
+} Array;
+
+/**
+ * Input : Array* a(parameter), integer initialSize(parameter)
+ * Description : inisialisasi array pertama dengan jumlah tertentu
+ * Author : Dave russell - 2501973400
+ */
+void initArray(Array *a, int initialSize) {
+  a->array = malloc(initialSize * sizeof(User));
+  a->used = 0;
+  a->size = initialSize;
+}
+
+/**
+ * Input : Array* a(parameter), User newUser(parameter)
+ * Description : memasukan data user ke dalam array
+ * Author : Dave russell - 2501973400
+ */
+void insertArray(Array *a, User newUser) {
+  if (a->used == a->size) {
+    a->size *= 2;
+    a->array = realloc(a->array, a->size * sizeof(User));
+  }
+  a->array[a->used++] = newUser;
+}
+
+/**
+ * Input : Array* a(parameter)
+ * Description : membebaskan memory array (menghapus alokasi memory array)
+ * Author : Dave russell - 2501973400
+ */
+void freeArray(Array *a) {
+  free(a->array);
+  a->array = NULL;
+  a->used = a->size = 0;
+}
 
 /**
  * Description : membersihkan char yang tertinggal di buffer
@@ -366,12 +412,21 @@ void menu_deposito(){
 }
 
 /**
+ * Input : User currentUser(parameter)
+ * Output : return 1 jika nama dan password currentUser kosong, return 0 jika tidak
+ * Description : mengecek apakah currentUser kosong atau tidak
+ * Author : Dave Russell - 2501973400
+ */
+int isEmptyData(User currentUser) {
+  return (!strlen(currentUser.nama) && !strlen(currentUser.password));
+}
+
+/**
  * Description : Menu ATM
  * Author : Richard Senjaya Johan - 2501964245
  */
 void atmMenu() {
-  int exit = 0;
-  while (!exit) {
+  while (!isEmptyData(currUser)) {
     system(CLEAR);
     int option = 0;
     menu();
@@ -388,12 +443,14 @@ void atmMenu() {
       	menu_deposito();
         break;
       case 4:
+        deleteAccount();
         break;
       case 5:
-        exit = 1;
+        strcpy(currUser.nama,"\0");
+        strcpy(currUser.password,"\0");
         break;
       default:
-    	break;
+    	  break;
       }
   }
 }
@@ -406,7 +463,7 @@ void atmMenu() {
 int withdrawalValidation(ull uang){
   if (uang > 5000000){
     puts("Mohon Maaf, withdrawal yang anda berikan telah melewati persyaratan maksimum");
-    enterToContinue;
+    enterToContinue();
     return 0;
   }
   else if (currUser.balance < uang) {
@@ -500,18 +557,83 @@ void withdrawal(){
   currUser.balance -= uang;
 }
 
-void debug() {
-  FILE* fp = fopen("database.bin","rb");
-  User u;
-  while (fread(&u,sizeof(User),1,fp)) {
-    printf("Username : %s, Password %s\n",u.nama,u.password);
-  }
-  fclose(fp);
+/**
+ * Output : Detail akun
+ * Description : menampilkan detail dari akun yang telah login
+ * Author : Dave Russell - 2501973400
+ */
+void accountDetail() {
+  puts("Account Detail");
+  puts("===================");
+  printf("Nama         : %s\n",currUser.nama);
+  printf("Contact      : %s\n",currUser.contact);
+  printf("Date created : %s",currUser.time);
+  printf("Balance      : %llu\n",currUser.balance);
+  puts("===================");
 }
 
 /**
+ * Input : String nama (parameter)
+ * Description : menghapus record yang berdasarkan nama
+ * Author : Dave Russell - 2501973400
+ */
+void deleteRecords(const char* nama) {
+  checkFile("database.bin");
+  FILE* dataStream = fopen("database.bin","rb");
+  User u;
+  Array temp;
+  initArray(&temp,10);
+  while (fread(&u,sizeof(u),1,dataStream)) {
+    if (!strcmp(nama,u.nama)) continue;
+    insertArray(&temp,u);
+  }
+  fclose(dataStream);
+  FILE* fp = fopen("database.bin","wb");
+  if (fp == NULL) {
+    printf("Gagal menghapus data...");
+    enterToContinue();
+    return;
+  }
+  for (int i = 0; i < temp.used; i++) {
+    fwrite(&(temp.array[i]),sizeof(User),1,fp);
+  }
+  fclose(fp);
+  freeArray(&temp);
+}
+
+/**
+ * Input : String nama (parameter)
+ * Description : Menghapus record akun dari file database.bin
+ * Author : Dave Russell - 2501973400
+ */
+void deleteAccount() {
+  int valid = 0;
+  char input[STR_MAX] = "\0";
+  while (!valid) {
+    system(CLEAR);
+    accountDetail();
+    printf("Apakah anda yakin ingin menghapus akun ini ? [y/n] : ");
+    scanf("%s",input);
+    clearBuff();
+    valid = (!strcmp(input,"y") || !strcmp(input,"n"));
+  }
+  if (!strcmp(input,"y")) {
+    puts("PERINGATAN!!! Semua data dalam akun ini akan hilang");
+    printf("Apakah anda yakin ingin melanjutkan proses penghapusan akun ? [y/n] : ");
+    scanf("%s",input);
+    clearBuff();
+    if (!strcmp(input,"y")) {
+      deleteRecords(currUser.nama);
+      strcpy(currUser.nama,"\0");
+      strcpy(currUser.password,"\0");
+    }
+  }
+}
+
+/**
+ * Output : Main menu display (stdout)
  * Description : main menu prompt
- * Author :
+ * Author : Dave Russell - 2501973400
  */
 void mainMenu() {
   puts("Main menu :");
